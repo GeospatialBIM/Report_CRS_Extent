@@ -1,3 +1,29 @@
+"""
+BIM Georeferencing Audit Script
+--------------------------------
+
+This script audits georeferencing metadata for BIM files stored in a folder
+structure. It recursively scans Revit (.rvt) and IFC (.ifc) files, extracts
+recorded spatial reference (CRS) information and exterior model extents
+(ExteriorShell), evaluates georeferencing status, and generates a timestamped
+text report.
+
+The report is intended to support BIM intake validation, BIM-to-GIS workflows,
+and vendor quality assurance prior to integrating BIM data into ArcGIS Pro.
+
+Disclaimer:
+This report reflects only the spatial reference and extent information recorded
+in the BIM file. Vendors are responsible for ensuring that georeferenced data
+is correct for the intended project location.
+
+Requirements:
+- ArcGIS Pro
+- ArcPy
+- Python 3.x (ArcGIS Pro environment)
+
+Author: [Your Name or Team]
+"""
+
 import arcpy
 import os
 from datetime import datetime
