@@ -20,6 +20,7 @@ For each BIM file, the report includes:
 - ExteriorShell model extents (X, Y, Z)
 - A summary section highlighting un‑georeferenced models
 - A timestamp and disclaimer clarifying data responsibility
+- Display units (model)
 
 > **Important**  
 > The report reflects only the spatial reference and extent information recorded in the BIM file.  
