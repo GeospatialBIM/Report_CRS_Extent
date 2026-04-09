@@ -7,6 +7,34 @@ workspace = r"\Downloads\ARENA"
 arcpy.env.workspace = workspace
 results = []
 
+# ------------------------------------------------------------------
+# IFC Length Unit Extraction
+# ------------------------------------------------------------------
+
+def get_ifc_length_unit(ifc_path):
+    try:
+        with open(ifc_path, "r", encoding="utf-8", errors="ignore") as f:
+            for line in f:
+                uline = line.upper()
+
+                if "IFCSIUNIT" in uline and "LENGTHUNIT" in uline:
+                    if "MILLIMETRE" in uline or ".MILLIMETRE." in uline:
+                        return "Millimeter"
+                    if ".METRE." in uline:   # ← exact dot-wrapped match BEFORE bare METRE
+                        return "Meter"
+                    if "METRE" in uline:     # ← fallback
+                        return "Meter"
+
+                if "IFCCONVERSIONBASEDUNIT" in uline and "LENGTHUNIT" in uline:
+                    if "FOOT" in uline or ".FOOT." in uline:
+                        return "Foot"
+                    if "INCH" in uline or ".INCH." in uline:
+                        return "Inch"
+
+        return "Unknown"
+    except Exception:
+        return "Unknown"
+
 # Output text file path (saved in the workspace folder)
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 output_txt = os.path.join(workspace, f"BIM_Report_{timestamp}.txt")
@@ -15,8 +43,11 @@ output_txt = os.path.join(workspace, f"BIM_Report_{timestamp}.txt")
 for dirpath, dirnames, filenames in os.walk(workspace):
     for filename in filenames:
 
-        # Check RVT or IFC
-        if not filename.lower().endswith((".rvt", ".ifc")):
+# reliable IFC detection (filename-based, ArcGIS-safe)
+        is_ifc = filename.lower().endswith((".ifc", ".ifczip"))
+        is_rvt = filename.lower().endswith(".rvt")
+
+        if not (is_ifc or is_rvt):
             continue
 
         full_path = os.path.join(dirpath, filename)
@@ -64,14 +95,23 @@ for dirpath, dirnames, filenames in os.walk(workspace):
             geo_status = "UN-GEOREFERENCED (No Spatial Reference)"
         else:
             geo_status = "GEOREFERENCED"
+            
+            
+            # ---- LENGTH UNIT (IFC only) ----
+        if is_ifc:
+            length_unit = get_ifc_length_unit(full_path)
+        else:
+            length_unit = "N/A (RVT)"  # RVT files don't expose length unit via text parsing
 
         # ---- APPEND RESULT (PER FILE) ----
         results.append({
             "Name": desc.name,
             "DataType": desc.dataType,
-            "DisplayUnits": getattr(desc, "lengthDisplayUnit", None),
+            "LengthDisplayUnit": getattr(desc, "lengthDisplayUnit", None),
+            "DisplayUnitSystem": getattr(desc, "displayUnitSystem", None),          
             "ExteriorShellExtent": exterior_extent,
-            "GeoreferenceStatus": geo_status
+            "GeoreferenceStatus": geo_status,
+            "LengthUnit": length_unit
         })
 
 def build_summary(results):
@@ -159,7 +199,9 @@ def format_results(results):
         "ExteriorShell Extent (YMax)",
         "ExteriorShell Extent (ZMin)",
         "ExteriorShell Extent (ZMax)",
-        "DisplayUnits",
+        "LengthDisplayUnit",
+        "DisplayUnitSystem",
+        "ModelLengthUnit",
     ]
 
     for item in results:
@@ -176,7 +218,9 @@ def format_results(results):
             "ExteriorShell Extent (YMax)": extent.get("YMax"),
             "ExteriorShell Extent (ZMin)": extent.get("ZMin"),
             "ExteriorShell Extent (ZMax)": extent.get("ZMax"),
-            "DisplayUnits" : item.get("DisplayUnits"),
+            "DisplayUnitSystem" : item.get("DisplayUnitSystem"),
+            "LengthDisplayUnit" : item.get("LengthDisplayUnit"),
+            "ModelLengthUnit": item.get("LengthUnit"),
         }
 
         lines.append("-" * 80)
