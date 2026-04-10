@@ -18,6 +18,7 @@ For each BIM file, the report includes:
 - Georeferencing status (Georeferenced vs. Un‑Georeferenced)
 - Recorded spatial reference (CRS)
 - EPSG Code
+- Version of the File
 - ExteriorShell model extents (X, Y, Z)
 - A summary section highlighting un‑georeferenced models
 - A timestamp and disclaimer clarifying data responsibility
