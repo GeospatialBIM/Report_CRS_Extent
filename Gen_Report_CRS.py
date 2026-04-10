@@ -56,6 +56,7 @@ for dirpath, dirnames, filenames in os.walk(workspace):
         # Describe the BIM file
         desc = arcpy.Describe(full_path)
         exterior_extent = None
+        fversion =desc.version
 
         # Look for ExteriorShell feature class
         if hasattr(desc, "children"):
@@ -83,7 +84,7 @@ for dirpath, dirnames, filenames in os.walk(workspace):
                             }
 
                             epsg_code = sr_obj.factoryCode if sr_obj else None
-
+                            
                         break  # stop once ExteriorShell is found
 
         # ---- GEOREFERENCE STATUS (MUST BE PER FILE) ----
@@ -115,7 +116,8 @@ for dirpath, dirnames, filenames in os.walk(workspace):
             "ExteriorShellExtent": exterior_extent,
             "GeoreferenceStatus": geo_status,
             "LengthUnit": length_unit,
-            "EPSG Code" :epsg_code
+            "EPSG Code" :epsg_code,
+            "File Version" :fversion,
         })
 
 # ------------------------------------------------------------------
@@ -153,6 +155,7 @@ REPORT_HEADERS = [
     "Reason",
     "SpatialReference",
     "EPSG Code",
+    "File Version",
     "ExteriorShell Extent (XMin)",
     "ExteriorShell Extent (YMin)",
     "ExteriorShell Extent (XMax)",
@@ -184,6 +187,7 @@ def build_row_values(item):
         "Reason"                        : reason,
         "SpatialReference"              : extent.get("SpatialReference"),
         "EPSG Code"                     : item.get("EPSG Code"),
+        "File Version"                  : item.get("File Version"),
         "ExteriorShell Extent (XMin)"   : extent.get("XMin"),
         "ExteriorShell Extent (YMin)"   : extent.get("YMin"),
         "ExteriorShell Extent (XMax)"   : extent.get("XMax"),
